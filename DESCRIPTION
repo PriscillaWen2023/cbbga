@@ -1,0 +1,14 @@
+Package: cbbga
+Title: Basketball Game Analysis Package
+Version: 1.0.0
+Authors@R: 
+    person("Priscilla", "Wen", , "sunnywen098@gmail.com", role = c("aut", "cre"))
+Description: This package provides functions for analyzing basketball game data, including computing win/loss records, generating visualizations, and more.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
