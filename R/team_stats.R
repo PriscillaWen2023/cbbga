@@ -20,19 +20,20 @@
 #' 
 #' @import dplyr
 #' @export
+#' 
 team_stats <- function(data, team_name) {
   # Filter games by the given team
   team_games <- data %>%
-    filter(Away_Team == team_name | Home_Team == team_name)
+    dplyr::filter(Away_Team == team_name | Home_Team == team_name)
   
   # Calculate win/loss record and winning percentage
   stats <- team_games %>%
-    mutate(outcome = case_when(
+    dplyr::mutate(outcome = case_when(
       (Away_Team == team_name & Away_Score > Home_Score) ~ "Win",
       (Home_Team == team_name & Home_Score > Away_Score) ~ "Win",
       TRUE ~ "Loss"
     )) %>%
-    summarize(
+    dplyr::summarize(
       Team = team_name,
       Wins = sum(outcome == "Win"),
       Losses = sum(outcome == "Loss"),
