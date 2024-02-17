@@ -1,32 +1,6 @@
 library(shiny)
 library(tidyverse)
-
-# Read the data
-data <- read_csv("https://raw.githubusercontent.com/PriscillaWen2023/cbbga/main/data-raw/cbbga_2023.csv")
-
-# Define function to compute win/loss record and winning percentage for a given team
-team_stats <- function(data, team_name) {
-  # Filter games by the given team
-  team_games <- data %>%
-    filter(Away_Team == team_name | Home_Team == team_name)
-  
-  # Calculate win/loss record and winning percentage
-  stats <- team_games %>%
-    mutate(outcome = case_when(
-      (Away_Team == team_name & Away_Score > Home_Score) ~ "Win",
-      (Home_Team == team_name & Home_Score > Away_Score) ~ "Win",
-      TRUE ~ "Loss"
-    )) %>%
-    summarize(
-      Team = team_name,
-      Wins = sum(outcome == "Win"),
-      Losses = sum(outcome == "Loss"),
-      Total_Games = Wins + Losses,
-      Winning_Percentage = Wins / Total_Games
-    )
-  
-  return(stats)
-}
+library(cbbga)
 
 # UI
 ui <- fluidPage(
@@ -42,36 +16,40 @@ ui <- fluidPage(
       plotOutput("win_loss_pie"),
       verbatimTextOutput("invalid_team_message"),
       verbatimTextOutput("teams_name"),
-      #h4("All Teams in alphabetical order:"),
       tableOutput("all_teams_table")
+      
     )
   )
 )
 
 # Server
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
   observeEvent(input$submit, {
     req(input$team_name)
     
+    # Reset outputs
+    output$team_stats_table <- renderTable(NULL)
+    output$win_loss_pie <- renderPlot(NULL)
+    output$all_teams_table <- renderTable(NULL)
+    
     # Check if team name is valid
-    if (!input$team_name %in% unique(c(data$Away_Team, data$Home_Team))) {
-      output$invalid_team_message <- renderPrint({
+    if (!input$team_name %in% unique(c(cbbga_2023$Away_Team, cbbga_2023$Home_Team))) {
+      output$invalid_team_message <- renderText({
         "Invalid team name. Please enter a valid team name!"
       })
-      output$teams_name <- renderPrint({
+      output$teams_name <- renderText({
         "All Teams in alphabetical order:"
       })
-      output$team_stats_table <- renderTable(NULL)
-      output$win_loss_pie <- renderPlot(NULL)
       
-      all_teams <- sort(unique(c(data$Away_Team, data$Home_Team)))
+      all_teams <- sort(unique(c(cbbga_2023$Away_Team, cbbga_2023$Home_Team)))
       all_teams_data <- tibble(Team_Name = all_teams)
       output$all_teams_table <- renderTable({
         all_teams_data
       })
     } else {
-      # Get team stats
-      team_stats_data <- team_stats(data, input$team_name)
+      # Get team stats using the team_stats function from your package
+      team_stats_data <- team_stats(cbbga_2023, input$team_name)
       
       # Output table of team stats
       output$team_stats_table <- renderTable({
@@ -86,10 +64,12 @@ server <- function(input, output) {
             col = c("skyblue", "#FF6666"))
         title(main = "Win-Loss Distribution")
       })
-      
-      output$invalid_team_message <- renderPrint(NULL)
-      output$teams_name <- renderPrint(NULL)
-      output$all_teams_table <- renderTable(NULL)
+      output$invalid_team_message <- renderText({
+        ""
+      })  
+      output$teams_name <- renderText({
+        ""
+      })
     }
   })
 }
